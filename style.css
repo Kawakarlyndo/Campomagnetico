@@ -1,0 +1,592 @@
+/* ============================================
+   CAMPO MAGNÉTICO — LEI DE BIOT-SAVART
+   Tema Escuro Elegante com Animações
+   ============================================ */
+
+/* ============================================
+   VARIÁVEIS CSS
+   ============================================ */
+
+:root {
+    /* Cores Principais */
+    --color-bg-dark: #001a4d;
+    --color-bg-darker: #0a1f3f;
+    --color-primary: #00e5ff;
+    --color-primary-dark: #0b3d91;
+    --color-accent: #00d4ff;
+    --color-text: #e0e0e0;
+    --color-text-light: #b0b0b0;
+    --color-border: #1a4d7a;
+    --color-error: #ff4444;
+    --color-success: #44ff44;
+
+    /* Tamanhos */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 1rem;
+    --spacing-md: 1.5rem;
+    --spacing-lg: 2rem;
+    --spacing-xl: 3rem;
+
+    /* Tipografia */
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-size-base: 16px;
+    --font-size-sm: 14px;
+    --font-size-lg: 18px;
+    --font-size-xl: 24px;
+    --font-size-2xl: 32px;
+
+    /* Efeitos */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
+    --glow-primary: 0 0 10px rgba(0, 229, 255, 0.5);
+    --glow-primary-strong: 0 0 20px rgba(0, 229, 255, 0.8);
+    --transition: all 0.3s ease;
+}
+
+/* ============================================
+   RESET E ESTILOS GLOBAIS
+   ============================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+    background: linear-gradient(135deg, var(--color-bg-dark) 0%, var(--color-bg-darker) 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* ============================================
+   CONTAINER PRINCIPAL
+   ============================================ */
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--spacing-lg);
+}
+
+/* ============================================
+   CABEÇALHO
+   ============================================ */
+
+.header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+    padding: var(--spacing-lg) 0;
+    border-bottom: 2px solid var(--color-border);
+    animation: slideDown 0.6s ease;
+}
+
+.header h1 {
+    font-size: var(--font-size-2xl);
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-sm);
+    text-shadow: var(--glow-primary);
+    letter-spacing: 1px;
+}
+
+.header .subtitle {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-light);
+    font-weight: 300;
+}
+
+/* ============================================
+   CONTEÚDO PRINCIPAL
+   ============================================ */
+
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   SEÇÃO DO FORMULÁRIO
+   ============================================ */
+
+.form-section {
+    animation: slideInLeft 0.6s ease;
+}
+
+.form-container {
+    background: rgba(10, 31, 63, 0.6);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: var(--spacing-lg);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-lg);
+}
+
+.form-container h2 {
+    font-size: var(--font-size-xl);
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.form-container h2::before {
+    content: '⚡';
+    font-size: 1.2em;
+}
+
+/* ============================================
+   FORMULÁRIO
+   ============================================ */
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.form-group label {
+    font-weight: 600;
+    color: var(--color-primary);
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input {
+    padding: var(--spacing-sm);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--color-text);
+    font-size: var(--font-size-base);
+    transition: var(--transition);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background: rgba(0, 229, 255, 0.1);
+    box-shadow: var(--glow-primary);
+}
+
+.form-group input::placeholder {
+    color: var(--color-text-light);
+}
+
+.form-group small {
+    color: var(--color-text-light);
+    font-size: var(--font-size-sm);
+    font-style: italic;
+}
+
+/* ============================================
+   BOTÃO
+   ============================================ */
+
+.btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    border-radius: 6px;
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+    color: #000;
+    box-shadow: var(--shadow-md);
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: var(--glow-primary-strong), var(--shadow-lg);
+}
+
+.btn-primary:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Spinner */
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0, 0, 0, 0.3);
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: none;
+}
+
+.btn:disabled .spinner {
+    display: inline-block;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================
+   MENSAGEM DE ERRO
+   ============================================ */
+
+.error-message {
+    display: none;
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid var(--color-error);
+    border-radius: 6px;
+    padding: var(--spacing-sm);
+    color: #ff8888;
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-sm);
+    animation: shake 0.4s ease;
+}
+
+.error-message.show {
+    display: block;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* ============================================
+   TABELA DE RESULTADOS
+   ============================================ */
+
+.results-container {
+    margin-top: var(--spacing-lg);
+    animation: slideUp 0.6s ease;
+}
+
+.results-container h3 {
+    font-size: var(--font-size-lg);
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.results-container h3::before {
+    content: '📊';
+}
+
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.results-table thead {
+    background: rgba(0, 229, 255, 0.1);
+    border-bottom: 2px solid var(--color-border);
+}
+
+.results-table th {
+    padding: var(--spacing-sm);
+    text-align: center;
+    color: var(--color-primary);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: var(--font-size-sm);
+    letter-spacing: 0.5px;
+}
+
+.results-table td {
+    padding: var(--spacing-sm);
+    text-align: center;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text);
+}
+
+.results-table tbody tr:hover {
+    background: rgba(0, 229, 255, 0.05);
+}
+
+.results-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ============================================
+   SEÇÃO DO CANVAS
+   ============================================ */
+
+.canvas-section {
+    animation: slideInRight 0.6s ease;
+}
+
+.canvas-container {
+    background: rgba(10, 31, 63, 0.6);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: var(--spacing-lg);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.canvas-container h2 {
+    font-size: var(--font-size-xl);
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.canvas-container h2::before {
+    content: '🧲';
+}
+
+#magneticCanvas {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    aspect-ratio: 1;
+    border: 2px solid var(--color-border);
+    border-radius: 8px;
+    background: radial-gradient(circle at center, rgba(0, 50, 100, 0.5), rgba(0, 20, 50, 0.8));
+    box-shadow: inset var(--glow-primary), var(--shadow-lg);
+    margin-bottom: var(--spacing-md);
+}
+
+.canvas-info {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+    text-align: center;
+    line-height: 1.6;
+    background: rgba(0, 0, 0, 0.2);
+    padding: var(--spacing-sm);
+    border-radius: 6px;
+    border-left: 3px solid var(--color-primary);
+}
+
+.canvas-info strong {
+    color: var(--color-primary);
+}
+
+/* ============================================
+   RODAPÉ
+   ============================================ */
+
+.footer {
+    border-top: 2px solid var(--color-border);
+    padding: var(--spacing-lg) 0;
+    text-align: center;
+    color: var(--color-text-light);
+    animation: slideUp 0.6s ease;
+}
+
+.footer p {
+    margin-bottom: var(--spacing-md);
+    line-height: 1.6;
+}
+
+.footer strong {
+    color: var(--color-primary);
+}
+
+.footer .formula {
+    background: rgba(0, 229, 255, 0.05);
+    padding: var(--spacing-sm);
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    font-family: 'Courier New', monospace;
+}
+
+.footer small {
+    display: block;
+    margin-top: var(--spacing-xs);
+    color: var(--color-text-light);
+}
+
+/* ============================================
+   ANIMAÇÕES
+   ============================================ */
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes ripple {
+    0% {
+        width: 0;
+        height: 0;
+        opacity: 1;
+    }
+    100% {
+        width: 300px;
+        height: 300px;
+        opacity: 0;
+    }
+}
+
+/* ============================================
+   RESPONSIVIDADE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .container {
+        padding: var(--spacing-md);
+    }
+
+    .header h1 {
+        font-size: var(--font-size-xl);
+    }
+
+    .header .subtitle {
+        font-size: var(--font-size-base);
+    }
+
+    .form-container,
+    .canvas-container {
+        padding: var(--spacing-md);
+    }
+
+    .results-table {
+        font-size: var(--font-size-sm);
+    }
+
+    .results-table th,
+    .results-table td {
+        padding: var(--spacing-xs);
+    }
+
+    #magneticCanvas {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: var(--spacing-sm);
+    }
+
+    .header {
+        margin-bottom: var(--spacing-lg);
+        padding: var(--spacing-md) 0;
+    }
+
+    .header h1 {
+        font-size: var(--font-size-xl);
+    }
+
+    .main-content {
+        gap: var(--spacing-lg);
+    }
+
+    .form-container,
+    .canvas-container {
+        padding: var(--spacing-md);
+    }
+
+    .btn {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: var(--font-size-sm);
+    }
+
+    .footer {
+        padding: var(--spacing-md) 0;
+    }
+}
+
+/* ============================================
+   MODO ESCURO (PADRÃO)
+   ============================================ */
+
+/* Já está implementado com as variáveis CSS acima */

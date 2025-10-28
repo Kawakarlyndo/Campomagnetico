@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campo Magnético — Lei de Biot-Savart</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Cabeçalho -->
+        <header class="header">
+            <h1>Campo Magnético</h1>
+            <p class="subtitle">Lei de Biot-Savart para Fio Longo Reto</p>
+        </header>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <!-- Seção do Formulário -->
+            <section class="form-section">
+                <div class="form-container">
+                    <h2>Cálculo do Campo Magnético</h2>
+                    
+                    <form id="calcForm" class="form">
+                        <!-- Campo de Corrente -->
+                        <div class="form-group">
+                            <label for="corrente">Corrente (A)</label>
+                            <input 
+                                type="number" 
+                                id="corrente" 
+                                name="corrente"
+                                placeholder="Ex: 10"
+                                step="0.1"
+                                min="0.1"
+                                required
+                            >
+                            <small>Corrente elétrica em Amperes</small>
+                        </div>
+
+                        <!-- Campo de Distâncias -->
+                        <div class="form-group">
+                            <label for="distancias">Distâncias (m)</label>
+                            <input 
+                                type="text" 
+                                id="distancias" 
+                                name="distancias"
+                                placeholder="Ex: 0.1, 0.2, 0.5, 1.0"
+                                required
+                            >
+                            <small>Distâncias separadas por vírgulas</small>
+                        </div>
+
+                        <!-- Botão Calcular -->
+                        <button type="submit" class="btn btn-primary">
+                            <span>Calcular</span>
+                            <span class="spinner" id="spinner"></span>
+                        </button>
+                    </form>
+
+                    <!-- Mensagem de Erro -->
+                    <div id="errorMessage" class="error-message"></div>
+
+                    <!-- Tabela de Resultados -->
+                    <div id="resultsContainer" class="results-container" style="display: none;">
+                        <h3>Resultados</h3>
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Distância (m)</th>
+                                    <th>Campo Magnético (T)</th>
+                                    <th>Notação Científica</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsTable">
+                                <!-- Resultados serão inseridos aqui -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção do Canvas -->
+            <section class="canvas-section">
+                <div class="canvas-container">
+                    <h2>Visualização do Campo Magnético</h2>
+                    <canvas id="magneticCanvas" width="600" height="600"></canvas>
+                    <p class="canvas-info">
+                        <strong>Fio:</strong> Linha vertical brilhante no centro<br>
+                        <strong>Partículas:</strong> Orbitam o fio, velocidade aumenta com B<br>
+                        <strong>Pulso:</strong> Efeito visual ao calcular
+                    </p>
+                </div>
+            </section>
+        </main>
+
+        <!-- Rodapé -->
+        <footer class="footer">
+            <p>
+                <strong>Campo Magnético — Lei de Biot-Savart</strong><br>
+                Ricardo Maverick<br>
+                <small>Projeto educacional | Eletromagnetismo</small>
+            </p>
+            <p class="formula">
+                <strong>Fórmula:</strong> B = (μ₀ × I) / (2πd)<br>
+                <small>μ₀ = 4π × 10⁻⁷ T·m/A</small>
+            </p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+</body>
+</html>
