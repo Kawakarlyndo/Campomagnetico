@@ -9,8 +9,8 @@
 
 :root {
     /* Cores Principais */
-    --color-bg-dark: #001a4d;
-    --color-bg-darker: #0a1f3f;
+    --color-bg-dark: black;
+    --color-bg-darker: black;
     --color-primary: #00e5ff;
     --color-primary-dark: #0b3d91;
     --color-accent: #00d4ff;
@@ -352,14 +352,14 @@ body {
 }
 
 /* ============================================
-   SEÇÃO DO CANVAS
+   SEÇÃO DE VISUALIZAÇÃO
    ============================================ */
 
-.canvas-section {
+.visualization-section {
     animation: slideInRight 0.6s ease;
 }
 
-.canvas-container {
+.visualization-container {
     background: rgba(10, 31, 63, 0.6);
     border: 1px solid var(--color-border);
     border-radius: 12px;
@@ -368,10 +368,9 @@ body {
     box-shadow: var(--shadow-lg);
     display: flex;
     flex-direction: column;
-    align-items: center;
 }
 
-.canvas-container h2 {
+.visualization-container h2 {
     font-size: var(--font-size-xl);
     color: var(--color-primary);
     margin-bottom: var(--spacing-md);
@@ -380,11 +379,61 @@ body {
     gap: var(--spacing-sm);
 }
 
-.canvas-container h2::before {
+.visualization-container h2::before {
     content: '🧲';
 }
 
-#magneticCanvas {
+/* Menu de Abas */
+.tabs-menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: var(--spacing-xs);
+}
+
+.tab-button {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: none;
+    border-radius: 4px 4px 0 0;
+    background: transparent;
+    color: var(--color-text-light);
+    cursor: pointer;
+    transition: var(--transition);
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+}
+
+.tab-button:hover {
+    color: var(--color-text);
+}
+
+.tab-button.active {
+    color: var(--color-primary);
+    border-bottom: 3px solid var(--color-primary);
+    background: rgba(0, 229, 255, 0.05);
+}
+
+/* Conteúdo das Abas */
+.visualization-content {
+    position: relative;
+    min-height: 400px; /* Altura mínima para gráficos */
+}
+
+.tab-pane {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-sm) 0;
+}
+
+.tab-pane.active {
+    display: flex;
+}
+
+/* Estilos para Canvas */
+#magneticCanvas, #dotsAndCrossesCanvas, #vectorDiagramCanvas {
     width: 100%;
     max-width: 600px;
     height: auto;
@@ -396,7 +445,22 @@ body {
     margin-bottom: var(--spacing-md);
 }
 
-.canvas-info {
+/* Estilos para Gráficos */
+/* Estilos para Gráficos */
+#chartBvsD1, #chartBvsD2 {
+    width: 100%;
+    max-width: 600px;
+    height: 300px; /* Reduzido de 400px para 300px */
+    margin-bottom: var(--spacing-md);
+}
+
+/* Ajuste na altura mínima da seção de visualização */
+.visualization-content {
+    position: relative;
+    min-height: 350px; /* Reduzido de 400px para 350px */
+}
+
+.canvas-info, .chart-info {
     font-size: var(--font-size-sm);
     color: var(--color-text-light);
     text-align: center;
@@ -405,9 +469,11 @@ body {
     padding: var(--spacing-sm);
     border-radius: 6px;
     border-left: 3px solid var(--color-primary);
+    width: 100%;
+    max-width: 600px;
 }
 
-.canvas-info strong {
+.canvas-info strong, .chart-info strong {
     color: var(--color-primary);
 }
 
@@ -590,3 +656,137 @@ body {
    ============================================ */
 
 /* Já está implementado com as variáveis CSS acima */
+
+
+
+/* Garantir que os canvases dos gráficos tenham tamanho */
+#chartBvsD1, #chartBvsD2 {
+    width: 100% !important;
+    height: 300px !important;
+    max-width: 600px;
+    margin: 0 auto var(--spacing-md) auto;
+    display: block;
+}
+
+/* Container dos gráficos precisa ter altura definida */
+.tab-pane {
+    min-height: 400px;
+    width: 100%;
+}
+
+/* Ajustes responsivos para gráficos */
+@media (max-width: 768px) {
+    #chartBvsD1, #chartBvsD2 {
+        height: 250px !important;
+    }
+    
+    .tab-pane {
+        min-height: 350px;
+    }
+}
+
+
+/* ============================================
+   CORREÇÕES PARA AS ABAS
+   ============================================ */
+
+/* Menu de Abas - Melhorado */
+.tabs-menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 8px;
+    width: 100%;
+}
+
+.tab-button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px 6px 0 0;
+    background: rgba(26, 77, 122, 0.3);
+    color: var(--color-text-light);
+    cursor: pointer;
+    transition: var(--transition);
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+    border-bottom: 3px solid transparent;
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+}
+
+.tab-button:hover {
+    color: var(--color-text);
+    background: rgba(26, 77, 122, 0.5);
+}
+
+.tab-button.active {
+    color: var(--color-primary);
+    background: rgba(0, 229, 255, 0.1);
+    border-bottom: 3px solid var(--color-primary);
+    box-shadow: var(--glow-primary);
+}
+
+/* Conteúdo das Abas - Melhorado */
+.visualization-content {
+    position: relative;
+    min-height: 500px;
+    width: 100%;
+}
+
+.tab-pane {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-md) 0;
+    width: 100%;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-pane.active {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsividade das Abas */
+@media (max-width: 768px) {
+    .tabs-menu {
+        flex-direction: column;
+        gap: 2px;
+    }
+    
+    .tab-button {
+        border-radius: 4px;
+        margin-bottom: 2px;
+        min-width: auto;
+    }
+    
+    .visualization-content {
+        min-height: 400px;
+    }
+}
+
+/* Garantir que os botões sejam clicáveis */
+.tab-button {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+/* Feedback visual ao clicar */
+.tab-button:active {
+    transform: translateY(1px);
+}
