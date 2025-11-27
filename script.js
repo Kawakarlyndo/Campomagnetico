@@ -29,6 +29,22 @@ const resultsTable = document.getElementById('resultsTable');
 const magneticCanvas = document.getElementById('magneticCanvas');
 const ctx = magneticCanvas.getContext('2d');
 
+// Novos elementos de Canvas
+const dotsAndCrossesCanvas = document.getElementById('dotsAndCrossesCanvas');
+const dotsAndCrossesCtx = dotsAndCrossesCanvas ? dotsAndCrossesCanvas.getContext('2d') : null;
+const vectorDiagramCanvas = document.getElementById('vectorDiagramCanvas');
+const vectorDiagramCtx = vectorDiagramCanvas ? vectorDiagramCanvas.getContext('2d') : null;
+
+// Elementos de Gráfico
+let chartBvsD1 = null;
+let chartBvsD2 = null;
+const chartBvsD1Element = document.getElementById('chartBvsD1');
+const chartBvsD2Element = document.getElementById('chartBvsD2');
+
+// Elementos de Abas
+const tabsMenu = document.getElementById('tabsMenu');
+const tabPanes = document.querySelectorAll('.tab-pane');
+
 // ============================================
 // VARIÁVEIS GLOBAIS
 // ============================================
@@ -54,12 +70,98 @@ document.addEventListener('DOMContentLoaded', () => {
     // Verificar se API está disponível
     checkAPIAvailability();
     
+    // Inicializar abas
+    inicializarAbas();
+    
     // Event listeners
     calcForm.addEventListener('submit', handleFormSubmit);
     
     // Iniciar animação do canvas
     startCanvasAnimation();
 });
+
+// ============================================
+// INICIALIZAÇÃO DAS ABAS
+// ============================================
+
+function inicializarAbas() {
+    console.log('Inicializando abas...');
+    
+    // Garantir que o primeiro painel esteja ativo
+    const primeiraAba = document.querySelector('.tab-button');
+    const primeiroPainel = document.querySelector('.tab-pane');
+    
+    if (primeiraAba && primeiroPainel) {
+        // Remover active de todos
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        tabPanes.forEach(pane => pane.classList.remove('active'));
+        
+        // Ativar primeiro
+        primeiraAba.classList.add('active');
+        primeiroPainel.classList.add('active');
+    }
+    
+    // Event listener para as abas
+    tabsMenu.addEventListener('click', function(event) {
+        const tabButton = event.target.closest('.tab-button');
+        
+        if (tabButton) {
+            const tabId = tabButton.dataset.tab;
+            console.log('Clicou na aba:', tabId);
+            
+            // Remover 'active' de todos os botões e painéis
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            tabPanes.forEach(pane => {
+                pane.classList.remove('active');
+            });
+            
+            // Adicionar 'active' ao botão e painel clicados
+            tabButton.classList.add('active');
+            const painelAtivo = document.getElementById(tabId);
+            if (painelAtivo) {
+                painelAtivo.classList.add('active');
+            }
+            
+            // Reiniciar animações ou gráficos se necessário
+            if (tabId === 'vis1') {
+                startCanvasAnimation();
+            } else {
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+            }
+
+            // Redesenhar visualizações se houver resultados
+            if (currentResults.length > 0) {
+                setTimeout(() => {
+                    switch(tabId) {
+                        case 'vis2':
+                            if (chartBvsD1Element) {
+                                desenharGraficoBvsD1(currentResults);
+                            }
+                            break;
+                        case 'vis3':
+                            desenharPontosECruzes(currentResults);
+                            break;
+                        case 'vis4':
+                            if (chartBvsD2Element) {
+                                desenharGraficoBvsD2(currentResults);
+                            }
+                            break;
+                        case 'vis5':
+                            desenharDiagramaVetorial(currentResults);
+                            break;
+                    }
+                }, 50);
+            }
+        }
+    });
+    
+    console.log('Abas inicializadas');
+}
 
 // ============================================
 // VERIFICAÇÃO DA API
@@ -75,13 +177,13 @@ async function checkAPIAvailability() {
         });
         
         if (response.ok) {
-            console.log('API disponível');
+            console.log('✅ API disponível');
             DEMO_MODE = false;
         } else {
-            throw new Error('API não respondeu com sucesso');
+            throw new Error(`API respondeu com status: ${response.status}`);
         }
     } catch (error) {
-        console.warn('API não disponível, ativando modo DEMO:', error.message);
+        console.warn('❌ API não disponível, ativando modo DEMO:', error.message);
         DEMO_MODE = true;
     }
 }
@@ -90,7 +192,7 @@ async function checkAPIAvailability() {
 // MANIPULAÇÃO DO FORMULÁRIO
 // ============================================
 
-async function handleFormSubmit(event) {
+function handleFormSubmit(event) {
     event.preventDefault();
     
     // Limpar mensagens de erro
@@ -111,9 +213,13 @@ async function handleFormSubmit(event) {
     const submitBtn = calcForm.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
     
+    // Calcular
+    calcularEExibirResultados(correnteValue, validation.distancias, submitBtn);
+}
+
+async function calcularEExibirResultados(correnteValue, distanciasArray, submitBtn) {
     try {
-        // Enviar requisição à API
-        const distanciasArray = validation.distancias;
+        console.log('Calculando campo magnético...');
         const resultado = await calcularCampoMagnetico(correnteValue, distanciasArray);
         
         // Processar resultados
@@ -121,12 +227,14 @@ async function handleFormSubmit(event) {
             showErrorMessage(resultado.error);
         } else {
             currentResults = resultado.resultados;
+            console.log('Resultados obtidos:', currentResults);
             exibirResultados(correnteValue, resultado.resultados);
-            atualizarAnimacaoCanvas(correnteValue, resultado.resultados);
+            atualizarVisualizacoes(correnteValue, resultado.resultados);
             criarRipple();
         }
     } catch (error) {
-        showErrorMessage('Erro ao comunicar com a API: ' + error.message);
+        console.error('Erro no cálculo:', error);
+        showErrorMessage('Erro ao calcular: ' + error.message);
     } finally {
         // Reabilitar botão
         submitBtn.disabled = false;
@@ -188,15 +296,18 @@ function validateInput(correnteValue, distanciasValue) {
 // ============================================
 
 async function calcularCampoMagnetico(corrente, distancias) {
-    // Modo DEMO
+    // Modo DEMO - sempre disponível como fallback
+    const resultadosDemo = {
+        resultados: distancias.map(d => ({
+            d: d,
+            B: (MU_0 * corrente) / (2 * Math.PI * d)
+        }))
+    };
+
+    // Se já sabemos que a API não está disponível, usar modo DEMO
     if (DEMO_MODE) {
-        console.log('Usando modo DEMO');
-        return {
-            resultados: distancias.map(d => ({
-                d: d,
-                B: (MU_0 * corrente) / (2 * Math.PI * d)
-            }))
-        };
+        console.log('Usando modo DEMO (API não disponível)');
+        return resultadosDemo;
     }
     
     try {
@@ -211,20 +322,22 @@ async function calcularCampoMagnetico(corrente, distancias) {
             })
         });
         
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
-        if (!response.ok) {
-            return {
-                error: data.erro || 'Erro ao calcular campo magnético'
-            };
+        if (data.erro) {
+            throw new Error(data.erro);
         }
         
         return data;
+        
     } catch (error) {
-        console.error('Erro na requisição:', error);
-        return {
-            error: 'Erro ao comunicar com a API'
-        };
+        console.warn('Erro na requisição da API, usando modo DEMO:', error.message);
+        DEMO_MODE = true;
+        return resultadosDemo;
     }
 }
 
@@ -270,7 +383,40 @@ function clearErrorMessage() {
 }
 
 // ============================================
-// ANIMAÇÕES DO CANVAS
+// ATUALIZAÇÃO DE VISUALIZAÇÕES
+// ============================================
+
+function atualizarVisualizacoes(corrente, resultados) {
+    console.log('Atualizando todas as visualizações...');
+    
+    // 1. Linhas de Campo
+    atualizarAnimacaoCanvas(corrente, resultados);
+
+    // 2. Gráfico B vs. d (Linear)
+    if (resultados.length > 0 && chartBvsD1Element) {
+        desenharGraficoBvsD1(resultados);
+    }
+
+    // 3. Pontos e Cruzes
+    if (resultados.length > 0 && dotsAndCrossesCtx) {
+        desenharPontosECruzes(resultados);
+    }
+
+    // 4. Gráfico B vs. d (Logarítmico)
+    if (resultados.length > 0 && chartBvsD2Element) {
+        desenharGraficoBvsD2(resultados);
+    }
+
+    // 5. Diagrama Vetorial
+    if (resultados.length > 0 && vectorDiagramCtx) {
+        desenharDiagramaVetorial(resultados);
+    }
+    
+    console.log('Visualizações atualizadas');
+}
+
+// ============================================
+// VISUALIZAÇÃO 1: LINHAS DE CAMPO (ANIMAÇÃO)
 // ============================================
 
 class Particle {
@@ -341,11 +487,9 @@ function atualizarAnimacaoCanvas(corrente, resultados) {
         const campo = resultado.B;
         const intensidade = campo / maxB;
         
-        // Número de partículas proporcional à intensidade
-        const numParticles = Math.ceil(intensidade * 20);
-        const speed = intensidade * 0.05;
+        const numParticles = Math.ceil(intensidade * 10);
+        const speed = intensidade * 0.1;
         
-        // Raio da órbita em pixels (escalar para o canvas)
         const raioPixels = (distancia / Math.max(...resultados.map(r => r.d))) * 150 + 30;
         
         for (let i = 0; i < numParticles; i++) {
@@ -358,15 +502,324 @@ function atualizarAnimacaoCanvas(corrente, resultados) {
     });
 }
 
+// ============================================
+// VISUALIZAÇÃO 2: GRÁFICO B vs. d (LINEAR)
+// ============================================
+
+function desenharGraficoBvsD1(resultados) {
+    if (!chartBvsD1Element) return;
+
+    const labels = resultados.map(r => r.d.toFixed(4) + ' m');
+    const data = resultados.map(r => r.B);
+
+    // Destruir gráfico existente se houver
+    if (chartBvsD1) {
+        chartBvsD1.destroy();
+    }
+
+    chartBvsD1 = new Chart(chartBvsD1Element, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Campo Magnético B (T)',
+                data: data,
+                borderColor: 'rgba(0, 229, 255, 1)',
+                backgroundColor: 'rgba(0, 229, 255, 0.2)',
+                borderWidth: 2,
+                pointRadius: 5,
+                pointBackgroundColor: 'rgba(0, 229, 255, 1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#e0e0e0'
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Campo Magnético (B) vs. Distância (d) - Escala Linear',
+                    color: '#00e5ff'
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Distância d (m)',
+                        color: '#b0b0b0'
+                    },
+                    ticks: {
+                        color: '#e0e0e0'
+                    },
+                    grid: {
+                        color: 'rgba(26, 77, 122, 0.5)'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Campo Magnético B (T)',
+                        color: '#b0b0b0'
+                    },
+                    ticks: {
+                        color: '#e0e0e0',
+                        callback: function(value) {
+                            if (Math.abs(value) < 1e-6 || Math.abs(value) > 1e6) {
+                                return value.toExponential(2);
+                            }
+                            return value.toFixed(8);
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(26, 77, 122, 0.5)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ============================================
+// VISUALIZAÇÃO 4: GRÁFICO B vs. d (LOGARÍTMICO)
+// ============================================
+
+function desenharGraficoBvsD2(resultados) {
+    if (!chartBvsD2Element) return;
+
+    const labels = resultados.map(r => r.d.toFixed(4) + ' m');
+    const data = resultados.map(r => r.B);
+
+    // Destruir gráfico existente se houver
+    if (chartBvsD2) {
+        chartBvsD2.destroy();
+    }
+
+    chartBvsD2 = new Chart(chartBvsD2Element, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Campo Magnético B (T)',
+                data: data,
+                borderColor: 'rgba(255, 165, 0, 1)',
+                backgroundColor: 'rgba(255, 165, 0, 0.2)',
+                borderWidth: 2,
+                pointRadius: 5,
+                pointBackgroundColor: 'rgba(255, 165, 0, 1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#e0e0e0'
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Campo Magnético (B) vs. Distância (d) - Eixo Y Logarítmico',
+                    color: '#00e5ff'
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Distância d (m)',
+                        color: '#b0b0b0'
+                    },
+                    ticks: {
+                        color: '#e0e0e0'
+                    },
+                    grid: {
+                        color: 'rgba(26, 77, 122, 0.5)'
+                    }
+                },
+                y: {
+                    type: 'logarithmic',
+                    title: {
+                        display: true,
+                        text: 'Campo Magnético B (T) (Escala Log)',
+                        color: '#b0b0b0'
+                    },
+                    ticks: {
+                        color: '#e0e0e0',
+                        callback: function(value) {
+                            if (value === 0) return '0';
+                            return value.toExponential(2);
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(26, 77, 122, 0.5)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ============================================
+// VISUALIZAÇÃO 3: PONTOS (•) E CRUZES (×)
+// ============================================
+
+function desenharPontosECruzes(resultados) {
+    if (!dotsAndCrossesCtx) return;
+
+    const canvas = dotsAndCrossesCanvas;
+    const ctx = dotsAndCrossesCtx;
+    const width = canvas.width;
+    const height = canvas.height;
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    // Limpar canvas
+    ctx.fillStyle = 'rgba(10, 31, 63, 1)';
+    ctx.fillRect(0, 0, width, height);
+
+    // Fio (Centro)
+    ctx.fillStyle = '#00e5ff';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Encontrar o valor máximo de distância para escala
+    const maxD = Math.max(...resultados.map(r => r.d));
+    const scaleFactor = (width / 2 - 20) / maxD;
+
+    // Desenhar representação
+    resultados.forEach(resultado => {
+        const distancia = resultado.d;
+        const raioPixels = distancia * scaleFactor;
+        
+        const points = [
+            { x: centerX + raioPixels, y: centerY, direction: 'out' },
+            { x: centerX - raioPixels, y: centerY, direction: 'in' },
+            { x: centerX, y: centerY + raioPixels, direction: 'in' },
+            { x: centerX, y: centerY - raioPixels, direction: 'out' }
+        ];
+        
+        const intensity = resultado.B / resultados[0].B;
+        const size = 10 + intensity * 10;
+
+        points.forEach(point => {
+            ctx.save();
+            ctx.translate(point.x, point.y);
+            ctx.fillStyle = '#00e5ff';
+            ctx.strokeStyle = '#00e5ff';
+            ctx.lineWidth = 2;
+            
+            if (point.direction === 'out') {
+                ctx.beginPath();
+                ctx.arc(0, 0, size / 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
+                ctx.stroke();
+            } else {
+                ctx.beginPath();
+                ctx.moveTo(-size / 3, -size / 3);
+                ctx.lineTo(size / 3, size / 3);
+                ctx.moveTo(size / 3, -size / 3);
+                ctx.lineTo(-size / 3, size / 3);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.restore();
+        });
+    });
+}
+
+// ============================================
+// VISUALIZAÇÃO 5: DIAGRAMA VETORIAL
+// ============================================
+
+function desenharDiagramaVetorial(resultados) {
+    if (!vectorDiagramCtx) return;
+
+    const canvas = vectorDiagramCanvas;
+    const ctx = vectorDiagramCtx;
+    const width = canvas.width;
+    const height = canvas.height;
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    // Limpar canvas
+    ctx.fillStyle = 'rgba(10, 31, 63, 1)';
+    ctx.fillRect(0, 0, width, height);
+
+    // Fio (Centro)
+    ctx.fillStyle = '#00e5ff';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    const maxB = Math.max(...resultados.map(r => r.B));
+    const maxVectorLength = 50;
+    const maxD = Math.max(...resultados.map(r => r.d));
+    const scaleFactor = (width / 2 - 60) / maxD;
+
+    // Desenhar vetores
+    resultados.forEach(resultado => {
+        const distancia = resultado.d;
+        const campo = resultado.B;
+        const raioPixels = distancia * scaleFactor;
+        const vectorLength = (campo / maxB) * maxVectorLength;
+        
+        for (let i = 0; i < 8; i++) {
+            const angle = (Math.PI * 2 * i) / 8;
+            const startX = centerX + Math.cos(angle) * raioPixels;
+            const startY = centerY + Math.sin(angle) * raioPixels;
+            const tangentAngle = angle + Math.PI / 2;
+            const endX = startX + Math.cos(tangentAngle) * vectorLength;
+            const endY = startY + Math.sin(tangentAngle) * vectorLength;
+            
+            ctx.strokeStyle = '#ffcc00';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            
+            const arrowSize = 6;
+            ctx.fillStyle = '#ffcc00';
+            ctx.save();
+            ctx.translate(endX, endY);
+            ctx.rotate(tangentAngle);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-arrowSize, arrowSize / 2);
+            ctx.lineTo(-arrowSize, -arrowSize / 2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+    });
+}
+
+// ============================================
+// ANIMAÇÕES DO CANVAS
+// ============================================
+
 function criarRipple() {
     ripples.push(new Ripple(centerX, centerY));
 }
 
 function desenharFio() {
-    // Fio central brilhante
     const fioWidth = 4;
     
-    // Efeito de glow
     ctx.shadowColor = '#00e5ff';
     ctx.shadowBlur = 20;
     ctx.strokeStyle = '#00e5ff';
@@ -376,7 +829,6 @@ function desenharFio() {
     ctx.lineTo(centerX, centerY + 150);
     ctx.stroke();
     
-    // Fio mais brilhante no centro
     ctx.shadowColor = '#00ffff';
     ctx.shadowBlur = 30;
     ctx.strokeStyle = '#ffffff';
@@ -390,7 +842,6 @@ function desenharFio() {
 }
 
 function desenharLinhasCampo() {
-    // Linhas de campo circulares
     ctx.strokeStyle = 'rgba(0, 229, 255, 0.2)';
     ctx.lineWidth = 1;
     
@@ -403,24 +854,26 @@ function desenharLinhasCampo() {
 }
 
 function startCanvasAnimation() {
+    if (!document.getElementById('vis1').classList.contains('active')) {
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+        }
+        return;
+    }
+
     function animate() {
-        // Limpar canvas
-        ctx.fillStyle = 'rgba(10, 31, 63, 0.1)';
+        ctx.fillStyle = 'rgba(10, 31, 63, 0.5)';
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
         
-        // Desenhar linhas de campo
         desenharLinhasCampo();
-        
-        // Desenhar fio
         desenharFio();
         
-        // Atualizar e desenhar partículas
         particles.forEach(particle => {
             particle.update();
             particle.draw(ctx);
         });
         
-        // Atualizar e desenhar ripples
         ripples = ripples.filter(ripple => ripple.isAlive());
         ripples.forEach(ripple => {
             ripple.update();
@@ -430,7 +883,9 @@ function startCanvasAnimation() {
         animationFrameId = requestAnimationFrame(animate);
     }
     
-    animate();
+    if (!animationFrameId) {
+        animate();
+    }
 }
 
 // ============================================
