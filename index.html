@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Campo Magnético — Lei de Biot-Savart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -79,16 +80,68 @@
                 </div>
             </section>
 
-            <!-- Seção do Canvas -->
-            <section class="canvas-section">
-                <div class="canvas-container">
-                    <h2>Visualização do Campo Magnético</h2>
-                    <canvas id="magneticCanvas" width="600" height="600"></canvas>
-                    <p class="canvas-info">
-                        <strong>Fio:</strong> Linha vertical brilhante no centro<br>
-                        <strong>Partículas:</strong> Orbitam o fio, velocidade aumenta com B<br>
-                        <strong>Pulso:</strong> Efeito visual ao calcular
-                    </p>
+            <!-- Seção de Visualização -->
+            <section class="visualization-section">
+                <div class="visualization-container">
+                    <h2>Visualizações do Campo Magnético</h2>
+                    
+                    <!-- Menu de Abas -->
+                    <div class="tabs-menu" id="tabsMenu">
+                        <button class="tab-button active" data-tab="vis1">1. Linhas de Campo</button>
+                        <button class="tab-button" data-tab="vis2">2. Gráfico B vs. d (1)</button>
+                        <button class="tab-button" data-tab="vis3">3. Pontos e Cruzes</button>
+                        <button class="tab-button" data-tab="vis4">4. Gráfico B vs. d (2)</button>
+                        <button class="tab-button" data-tab="vis5">5. Diagrama Vetorial</button>
+                    </div>
+
+                    <!-- Contêineres de Visualização -->
+                    <div class="visualization-content">
+                        
+                        <!-- 1. Linhas de Campo Magnético (Vista 2D) - Usará o canvas existente -->
+                        <div id="vis1" class="tab-pane active">
+                            <canvas id="magneticCanvas" width="600" height="600"></canvas>
+                            <p class="canvas-info">
+                                <strong>Visualização 1: Linhas de Campo Magnético.</strong><br>
+                                O campo é representado por círculos concêntricos ao fio. A animação de partículas simula a órbita de cargas em torno do fio.
+                            </p>
+                        </div>
+
+                        <!-- 2. Gráfico do Campo Magnético B em função da distância d (Chart.js) -->
+                        <div id="vis2" class="tab-pane">
+                            <canvas id="chartBvsD1"></canvas>
+                            <p class="chart-info">
+                                <strong>Visualização 2: Gráfico B vs. d (Linear).</strong><br>
+                                Representação linear da intensidade do Campo Magnético (B) em função da Distância (d).
+                            </p>
+                        </div>
+
+                        <!-- 3. Representação com Pontos (•) e Cruzes (×) - Usará o canvas existente -->
+                        <div id="vis3" class="tab-pane">
+                            <canvas id="dotsAndCrossesCanvas" width="600" height="600"></canvas>
+                            <p class="canvas-info">
+                                <strong>Visualização 3: Pontos (•) e Cruzes (×).</strong><br>
+                                Representação da direção do campo magnético (B) em um plano perpendicular ao fio. Pontos (•) indicam campo saindo do plano, Cruzes (×) indicam campo entrando no plano.
+                            </p>
+                        </div>
+
+                        <!-- 4. Gráfico do Campo Magnético B em função da distância d (Alternativo - Logarítmico) -->
+                        <div id="vis4" class="tab-pane">
+                            <canvas id="chartBvsD2"></canvas>
+                            <p class="chart-info">
+                                <strong>Visualização 4: Gráfico B vs. d (Logarítmico).</strong><br>
+                                Representação logarítmica da intensidade do Campo Magnético (B) em função da Distância (d), destacando a relação inversa.
+                            </p>
+                        </div>
+
+                        <!-- 5. Diagrama Vetorial (Setas de Intensidade) - Usará o canvas existente -->
+                        <div id="vis5" class="tab-pane">
+                            <canvas id="vectorDiagramCanvas" width="600" height="600"></canvas>
+                            <p class="canvas-info">
+                                <strong>Visualização 5: Diagrama Vetorial.</strong><br>
+                                Representação do campo magnético (B) como vetores (setas) em pontos discretos ao redor do fio. O comprimento da seta indica a intensidade.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
